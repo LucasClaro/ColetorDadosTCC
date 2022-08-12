@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        val intentFilter = IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION)
+        val intentFilter = IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
         registerReceiver(wifiScanReceiver, intentFilter)
     }
     override fun onStop() {
