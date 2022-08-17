@@ -1,5 +1,6 @@
 package br.senac.tcc
 
+import android.R
 import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
 import android.content.Context
@@ -9,6 +10,7 @@ import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import br.senac.tcc.databinding.ActivityMainBinding
 import java.util.*
@@ -29,6 +31,14 @@ class MainActivity : AppCompatActivity() {
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         Log.v(TAG, "2222222222222")
         //verifierPermission()
+
+        val adapter = ArrayAdapter(applicationContext, R.layout.simple_spinner_item, listOf("A11", "A12", "A13", "B11", "C11", "C12", "C13", "D11",
+            "NASA", "E11", "A21", "A22", "A23", "B21", "C21", "C22", "C23", "D21", "E21", "F21",
+            "G11", "G12", "G12", "H11", "I11", "I12", "I12", "J11", "K11",
+            "G21", "G22", "G32", "H21", "I21", "I22", "I22", "J21", "K21"
+        ))
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        b.spinner.adapter = adapter
 
         b.btnTestar.setOnClickListener { teste() }
     }
@@ -92,11 +102,15 @@ class MainActivity : AppCompatActivity() {
                 Log.v(TAG, "666666666")
                 val wifiScanList: List<ScanResult> = wifiManager.scanResults
                 Log.v(TAG, wifiScanList.toString())
+                var texto = ""
                 for (wifiScan in wifiScanList) {
-                    val name = wifiScan.BSSID.lowercase(Locale.getDefault())
+                    val nome = wifiScan.SSID
+                    val cod = wifiScan.BSSID.lowercase(Locale.getDefault())
                     val rssi = wifiScan.level
-                    Log.v(TAG, "wifi: " + name + " => " + rssi + "dBm")
+                    Log.v(TAG, "SSID: " + nome + ", BSSID: " + cod + "=> " + rssi + "dBm")
+                    texto += "SSID: " + nome + ", BSSID: " + cod + "=> " + rssi + "dBm\n"
                 }
+                b.textView.text = texto
             }
             else {
                 Log.v(TAG, "XXXXXX")
