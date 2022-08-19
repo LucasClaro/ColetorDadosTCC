@@ -13,12 +13,15 @@ import android.util.Log
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import br.senac.tcc.databinding.ActivityMainBinding
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityMainBinding
+    private lateinit var database: DatabaseReference
 
     lateinit var wifiManager: WifiManager
 
@@ -26,6 +29,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
+
+        setupFirebase()
 
         Log.v(TAG, "11111111111111")
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -94,36 +99,55 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(wifiScanReceiver)
     }
 
-    val wifiScanReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    private val wifiScanReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.v(TAG, "444444444444444444444")
-            val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
-            if (success) {
-                Log.v(TAG, "666666666")
-                val wifiScanList: List<ScanResult> = wifiManager.scanResults
-                Log.v(TAG, wifiScanList.toString())
-                var texto = ""
-                for (wifiScan in wifiScanList) {
-                    val nome = wifiScan.SSID
-                    val cod = wifiScan.BSSID.lowercase(Locale.getDefault())
-                    val rssi = wifiScan.level
-                    Log.v(TAG, "SSID: " + nome + ", BSSID: " + cod + "=> " + rssi + "dBm")
-                    texto += "SSID: " + nome + ", BSSID: " + cod + "=> " + rssi + "dBm\n"
+
+            if (intent.action == WifiManager.SCAN_RESULTS_AVAILABLE_ACTION) {
+                Log.v(TAG, "444444444444444444444")
+                val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
+                if (success) {
+                    Log.v(TAG, "666666666")
+                    val wifiScanList: List<ScanResult> = wifiManager.scanResults
+                    Log.v(TAG, wifiScanList.toString())
+
+                    val conexoes = mutableListOf<Conexao>()
+
+                    for (wifiScan in wifiScanList) {
+                        val conexao = Conexao(SSID = wifiScan.SSID, BSSID = wifiScan.BSSID.lowercase(Locale.getDefault()), RSSI = wifiScan.level.toString())
+                        conexoes += conexao
+//                    val nome = wifiScan.SSID
+//                    val cod = wifiScan.BSSID.lowercase(Locale.getDefault())
+//                    val rssi = wifiScan.level
+//                    Log.v(TAG, "SSID: " + nome + ", BSSID: " + cod + "=> " + rssi + "dBm")
+//                    texto += "SSID: " + nome + ", BSSID: " + cod + "=> " + rssi + "dBm\n"
+                    }
+                    val registro = Registro(setor = b.spinner.selectedItem.toString(), sala = "", conexoes)
+
+                    val newNode = database.push()
+                    newNode.setValue(registro)
+
+                    b.btnTestar.isEnabled = true
+                    b.textView.text = "Registro em ${b.spinner.selectedItem} salvo no banco."
                 }
-                b.textView.text = texto
+                else {
+                    Log.v(TAG, "0000")
+                }
             }
-            else {
-                Log.v(TAG, "XXXXXX")
-            }
+
         }
     }
 
     private fun teste() {
         //verifierPermission()
         //wifiManager.setWifiEnabled(false);
+        b.btnTestar.isEnabled = false
         wifiManager.startScan()
         Log.v(TAG, "555555555")
         //val ssid = info.ssid
         //val rssi = info.rssi
+    }
+
+    private fun setupFirebase() {
+        database = FirebaseDatabase.getInstance().reference
     }
 }
